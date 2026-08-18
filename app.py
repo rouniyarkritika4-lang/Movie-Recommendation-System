@@ -1,0 +1,2047 @@
+import os
+import html
+from urllib.parse import quote_plus
+
+import requests
+import streamlit as st
+
+
+# ============================================================
+# SETTINGS
+# ============================================================
+
+API_BASE = os.getenv(
+    "API_BASE",
+    "https://movie-rec-466x.onrender.com"
+).rstrip("/")
+
+TMDB_IMG = "https://image.tmdb.org/t/p/w500"
+TMDB_BACKDROP = "https://image.tmdb.org/t/p/original"
+
+st.set_page_config(
+    page_title="CineMatch",
+    page_icon="🎬",
+    layout="wide"
+)
+
+
+# ============================================================
+# CSS
+# ============================================================
+
+st.markdown(
+    """
+<style>
+
+/* ==========================================================
+   MAIN APP
+   ========================================================== */
+
+.stApp {
+    background: #0b0715;
+    color: white;
+}
+
+.block-container {
+    margin-left: 245px;
+    max-width: 1200px;
+    padding-top: 25px;
+    padding-bottom: 50px;
+}
+
+section[data-testid="stSidebar"] {
+    display: none;
+}
+
+p,
+span,
+label {
+    color: #eee;
+}
+
+
+/* ==========================================================
+   SEARCH
+   ========================================================== */
+
+.stTextInput input {
+    background: #191225 !important;
+    color: white !important;
+    border: 1px solid #654b8c !important;
+    border-radius: 25px !important;
+}
+
+.stTextInput input::placeholder {
+    color: #aaa !important;
+}
+
+
+/* ==========================================================
+   BUTTONS
+   ========================================================== */
+
+.stButton button {
+    background: #25173c !important;
+    color: white !important;
+    border: 1px solid #7652a8 !important;
+    border-radius: 20px !important;
+}
+
+.stButton button:hover {
+    background: #7c3aed !important;
+    color: white !important;
+}
+
+
+/* ==========================================================
+   DROPDOWN
+   ========================================================== */
+
+div[data-testid="stSelectbox"]
+div[data-baseweb="select"] > div {
+    background: white !important;
+    color: black !important;
+}
+
+div[data-testid="stSelectbox"]
+div[data-baseweb="select"] span {
+    color: black !important;
+    -webkit-text-fill-color: black !important;
+}
+
+div[data-baseweb="popover"] {
+    z-index: 999999 !important;
+}
+
+div[data-baseweb="popover"] [role="listbox"] {
+    background: white !important;
+}
+
+div[data-baseweb="popover"] [role="option"],
+div[data-baseweb="popover"] [role="option"] * {
+    background: white !important;
+    color: black !important;
+    -webkit-text-fill-color: black !important;
+}
+
+div[data-baseweb="popover"] [role="option"]:hover {
+    background: #eee !important;
+}
+
+
+/* ==========================================================
+   LEFT SIDEBAR
+   ========================================================== */
+
+.movie-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 225px;
+    background: #08050e;
+    border-right: 1px solid #292033;
+    padding: 20px 14px;
+    z-index: 9990;
+}
+
+.logo {
+    font-size: 25px;
+    font-weight: 900;
+    margin-bottom: 30px;
+    color: white !important;
+}
+
+.logo span {
+    color: #b56cff !important;
+}
+
+.sidebar-title {
+    background: #7c3aed;
+    padding: 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    margin-bottom: 18px;
+    color: white !important;
+}
+
+.sidebar-label {
+    color: #999 !important;
+    font-size: 13px;
+    margin: 10px 8px;
+}
+
+.category {
+    display: block;
+    padding: 10px 12px;
+    margin: 3px 0;
+    border-radius: 6px;
+    color: #ddd !important;
+    text-decoration: none !important;
+}
+
+.category:hover {
+    background: #25173c;
+    color: white !important;
+}
+
+.category.active {
+    background: #6d28d9;
+    color: white !important;
+}
+
+
+/* ==========================================================
+   MOVIE GRID
+   ========================================================== */
+
+.movie-grid {
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(165px, 1fr)
+    );
+    gap: 18px;
+}
+
+
+/* ==========================================================
+   HORIZONTAL ROW
+   ========================================================== */
+
+.movie-row {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    padding: 5px 5px 18px;
+    scrollbar-color: #6d28d9 #151020;
+}
+
+.movie-row::-webkit-scrollbar {
+    height: 8px;
+}
+
+.movie-row::-webkit-scrollbar-track {
+    background: #151020;
+    border-radius: 10px;
+}
+
+.movie-row::-webkit-scrollbar-thumb {
+    background: #6d28d9;
+    border-radius: 10px;
+}
+
+.movie-row .movie-card {
+    flex: 0 0 165px;
+}
+
+
+/* ==========================================================
+   MOVIE CARD
+   ========================================================== */
+
+.movie-card {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+
+    background: #151020;
+    border: 1px solid #292033;
+    border-radius: 12px;
+
+    overflow: hidden;
+    text-decoration: none !important;
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.movie-card:hover {
+    transform: translateY(-5px);
+    border-color: #9b5cff;
+
+    box-shadow:
+        0 10px 30px rgba(124, 58, 237, 0.25);
+}
+
+
+/* ==========================================================
+   POSTER
+   ========================================================== */
+
+.movie-poster {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+
+    background:
+        linear-gradient(
+            135deg,
+            #211832,
+            #0e0a17
+        );
+
+    overflow: hidden;
+    position: relative;
+}
+
+.movie-poster-img {
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    object-fit: cover;
+    object-position: center;
+
+    background: #211832;
+}
+
+
+/* Broken/no image */
+
+.movie-poster-placeholder {
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    background:
+        linear-gradient(
+            135deg,
+            #211832,
+            #0e0a17
+        );
+
+    color: #7652a8;
+    font-size: 42px;
+}
+
+.movie-poster-placeholder span {
+    color: #888 !important;
+    font-size: 11px;
+    margin-top: 6px;
+}
+
+
+/* ==========================================================
+   MOVIE INFO
+   ========================================================== */
+
+.movie-info {
+    padding: 9px;
+}
+
+.movie-title {
+    color: white !important;
+    font-weight: bold;
+    font-size: 14px;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.movie-year {
+    color: #999 !important;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+
+/* ==========================================================
+   SECTION TITLES
+   ========================================================== */
+
+.section-title {
+    color: white !important;
+    font-size: 22px;
+    font-weight: bold;
+
+    margin-top: 25px;
+    margin-bottom: 12px;
+}
+
+
+/* ==========================================================
+   HERO
+   ========================================================== */
+
+.hero {
+    min-height: 400px;
+
+    border-radius: 18px;
+
+    background-size: cover;
+    background-position: center;
+
+    position: relative;
+    overflow: hidden;
+
+    margin-bottom: 25px;
+
+    border: 1px solid #292033;
+}
+
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+
+    padding: 35px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+
+    background:
+        linear-gradient(
+            transparent 20%,
+            rgba(5, 3, 12, 0.95) 100%
+        );
+}
+
+.hero-title {
+    font-size: 42px;
+    font-weight: 900;
+    color: white !important;
+}
+
+.hero-text {
+    max-width: 650px;
+    color: #ddd !important;
+    line-height: 1.5;
+}
+
+
+/* ==========================================================
+   DETAILS HERO
+   ========================================================== */
+
+.details-hero {
+    min-height: 430px;
+
+    border-radius: 18px;
+
+    background-size: cover;
+    background-position: center;
+
+    position: relative;
+    overflow: hidden;
+
+    border: 1px solid #292033;
+}
+
+.details-title {
+    position: absolute;
+
+    bottom: 25px;
+    left: 30px;
+
+    color: white !important;
+
+    font-size: 42px;
+    font-weight: 900;
+}
+
+
+/* ==========================================================
+   GENRE TAGS
+   ========================================================== */
+
+.tag {
+    display: inline-block;
+
+    background: #292033;
+
+    padding: 6px 12px;
+
+    border-radius: 8px;
+
+    margin: 4px;
+
+    color: white !important;
+}
+
+
+/* ==========================================================
+   TRAILER BUTTON
+   ========================================================== */
+
+.trailer-button {
+    display: inline-block;
+
+    padding: 10px 20px;
+
+    background: #7c3aed;
+    color: white !important;
+
+    border-radius: 20px;
+
+    text-decoration: none !important;
+
+    font-weight: bold;
+
+    margin-top: 10px;
+}
+
+.trailer-button:hover {
+    background: #9b5cff;
+}
+
+
+/* ==========================================================
+   MOBILE
+   ========================================================== */
+
+@media (max-width: 800px) {
+
+    .block-container {
+        margin-left: 205px;
+    }
+
+    .movie-sidebar {
+        width: 190px;
+    }
+
+    .hero-title,
+    .details-title {
+        font-size: 30px;
+    }
+
+    .hero {
+        min-height: 350px;
+    }
+}
+
+</style>
+""",
+    unsafe_allow_html=True
+)
+
+
+# ============================================================
+# SAFE HTML
+# ============================================================
+
+def esc(value):
+    """
+    Safely escape a value before putting it into HTML.
+    """
+
+    if value is None:
+        return ""
+
+    return html.escape(str(value), quote=True)
+
+
+def render_html(value):
+    """
+    Render HTML as one line.
+    This prevents Streamlit from treating indentation
+    as a code block.
+    """
+
+    one_line = " ".join(
+        line.strip()
+        for line in str(value).splitlines()
+        if line.strip()
+    )
+
+    st.markdown(
+        one_line,
+        unsafe_allow_html=True
+    )
+
+
+# ============================================================
+# IMAGE URL HELPER
+# ============================================================
+
+def normalize_image_url(value, image_type="poster"):
+    """
+    Convert any TMDB image value into a complete URL.
+
+    Supported:
+
+        /abc.jpg
+
+        abc.jpg
+
+        https://image.tmdb.org/...
+
+        http://...
+
+    """
+
+    if not value:
+        return ""
+
+    value = str(value).strip()
+
+    if not value:
+        return ""
+
+    # --------------------------------------------------------
+    # Already complete URL
+    # --------------------------------------------------------
+
+    if value.startswith("https://"):
+        return value
+
+    if value.startswith("http://"):
+        return value
+
+
+    # --------------------------------------------------------
+    # Remove accidental quotes
+    # --------------------------------------------------------
+
+    value = value.strip("'\"")
+
+
+    # --------------------------------------------------------
+    # Select image size
+    # --------------------------------------------------------
+
+    if image_type == "backdrop":
+        base = TMDB_BACKDROP
+    else:
+        base = TMDB_IMG
+
+
+    # --------------------------------------------------------
+    # TMDB path
+    # --------------------------------------------------------
+
+    if value.startswith("/"):
+        return base + value
+
+
+    # --------------------------------------------------------
+    # Filename
+    # --------------------------------------------------------
+
+    return base + "/" + value
+
+
+# ============================================================
+# GET IMAGE FROM MOVIE
+# ============================================================
+
+def get_image_url(movie, image_type="poster"):
+    """
+    Try multiple possible field names.
+
+    This is important because different API endpoints
+    may return different image field names.
+    """
+
+    if not isinstance(movie, dict):
+        return ""
+
+
+    if image_type == "poster":
+
+        possible_fields = [
+            "poster_url",
+            "poster_path",
+            "poster",
+            "poster_image",
+            "poster_image_url",
+            "image_url",
+            "image",
+        ]
+
+    else:
+
+        possible_fields = [
+            "backdrop_url",
+            "backdrop_path",
+            "backdrop",
+            "backdrop_image",
+            "backdrop_image_url",
+            "backdrop_url",
+            "image_url",
+            "image",
+        ]
+
+
+    for field in possible_fields:
+
+        value = movie.get(field)
+
+        if value:
+
+            result = normalize_image_url(
+                value,
+                image_type
+            )
+
+            if result:
+                return result
+
+
+    return ""
+
+
+# ============================================================
+# API
+# ============================================================
+
+@st.cache_data(ttl=600)
+def api_get(path, params=None):
+
+    try:
+
+        url = API_BASE + path
+
+        response = requests.get(
+            url,
+            params=params,
+            timeout=30
+        )
+
+        if response.status_code >= 400:
+
+            return None, (
+                f"HTTP {response.status_code}: "
+                f"{response.text[:500]}"
+            )
+
+
+        try:
+
+            data = response.json()
+
+        except ValueError:
+
+            return None, (
+                "API returned invalid JSON:\n"
+                + response.text[:500]
+            )
+
+
+        return data, None
+
+
+    except requests.exceptions.Timeout:
+
+        return None, (
+            "The movie server took too long to respond."
+        )
+
+
+    except requests.exceptions.ConnectionError:
+
+        return None, (
+            "Could not connect to the movie server."
+        )
+
+
+    except Exception as e:
+
+        return None, str(e)
+
+
+# ============================================================
+# NAVIGATION
+# ============================================================
+
+def go_home():
+
+    st.session_state.view = "home"
+    st.session_state.movie_id = None
+    st.session_state.category = None
+
+    st.query_params.clear()
+
+    st.query_params["view"] = "home"
+
+    st.rerun()
+
+
+def go_movie(movie_id):
+
+    if not movie_id:
+        return
+
+    try:
+
+        movie_id = int(movie_id)
+
+    except (TypeError, ValueError):
+
+        return
+
+
+    st.session_state.view = "details"
+    st.session_state.movie_id = movie_id
+
+    st.query_params.clear()
+
+    st.query_params["view"] = "details"
+    st.query_params["id"] = str(movie_id)
+
+    st.rerun()
+
+
+# ============================================================
+# SESSION STATE
+# ============================================================
+
+if "view" not in st.session_state:
+    st.session_state.view = "home"
+
+if "movie_id" not in st.session_state:
+    st.session_state.movie_id = None
+
+if "category" not in st.session_state:
+    st.session_state.category = None
+
+
+# ============================================================
+# READ URL
+# ============================================================
+
+url_view = st.query_params.get("view")
+url_id = st.query_params.get("id")
+url_cat = st.query_params.get("cat")
+
+
+if url_view in ("home", "details"):
+
+    st.session_state.view = url_view
+
+
+if url_id:
+
+    try:
+
+        st.session_state.movie_id = int(url_id)
+
+    except (ValueError, TypeError):
+
+        pass
+
+
+if url_cat:
+
+    st.session_state.category = url_cat
+
+elif st.session_state.view == "home":
+
+    st.session_state.category = None
+
+
+# ============================================================
+# CATEGORIES
+# ============================================================
+
+categories = [
+    ("trending", "🔥", "Trending"),
+    ("popular", "😍", "Popular"),
+    ("top_rated", "🏆", "Hit Movies"),
+    ("now_playing", "🎟️", "Now Playing"),
+    ("upcoming", "📅", "Coming Soon"),
+]
+
+
+# ============================================================
+# LEFT SIDEBAR
+# ============================================================
+
+sidebar_html = '<div class="movie-sidebar">'
+
+sidebar_html += (
+    '<div class="logo">'
+    '🎬 <span>CineMatch</span>'
+    '</div>'
+)
+
+sidebar_html += (
+    '<div class="sidebar-title">'
+    'Filters'
+    '</div>'
+)
+
+sidebar_html += (
+    '<div class="sidebar-label">'
+    'Categories'
+    '</div>'
+)
+
+
+for key, icon, name in categories:
+
+    active = (
+        "active"
+        if st.session_state.category == key
+        else ""
+    )
+
+    sidebar_html += (
+        f'<a class="category {active}" '
+        f'href="?view=home&amp;cat={esc(key)}" '
+        f'target="_self">'
+        f'{icon} &nbsp; {esc(name)}'
+        f'</a>'
+    )
+
+
+sidebar_html += "</div>"
+
+
+st.markdown(
+    sidebar_html,
+    unsafe_allow_html=True
+)
+
+
+# ============================================================
+# BRAND
+# ============================================================
+
+st.markdown(
+    """
+    <h1 style="color:white">
+        🎬 CineMatch
+    </h1>
+
+    <p style="color:#999">
+        Find movies and discover similar movies.
+    </p>
+    """,
+    unsafe_allow_html=True
+)
+
+
+# ============================================================
+# MOVIE CARD
+# ============================================================
+
+def movie_card(movie):
+
+    if not isinstance(movie, dict):
+        return ""
+
+
+    # --------------------------------------------------------
+    # ID
+    # --------------------------------------------------------
+
+    movie_id = (
+        movie.get("tmdb_id")
+        or movie.get("id")
+    )
+
+    if not movie_id:
+        return ""
+
+
+    try:
+
+        movie_id = int(movie_id)
+
+    except (TypeError, ValueError):
+
+        return ""
+
+
+    # --------------------------------------------------------
+    # TITLE
+    # --------------------------------------------------------
+
+    raw_title = (
+        movie.get("title")
+        or movie.get("name")
+        or movie.get("original_title")
+        or "Unknown"
+    )
+
+    title = esc(raw_title)
+
+
+    # --------------------------------------------------------
+    # POSTER
+    # --------------------------------------------------------
+
+    poster = get_image_url(
+        movie,
+        "poster"
+    )
+
+    poster = esc(poster)
+
+
+    # --------------------------------------------------------
+    # YEAR
+    # --------------------------------------------------------
+
+    release_date = (
+        movie.get("release_date")
+        or movie.get("first_air_date")
+        or ""
+    )
+
+    year = esc(
+        str(release_date)[:4]
+    )
+
+
+    # --------------------------------------------------------
+    # RATING
+    # --------------------------------------------------------
+
+    rating = movie.get(
+        "vote_average"
+    )
+
+    rating_text = ""
+
+    try:
+
+        if rating is not None:
+
+            rating_text = (
+                f"⭐ {float(rating):.1f}"
+            )
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        rating_text = ""
+
+
+    rating_text = esc(
+        rating_text
+    )
+
+
+    # --------------------------------------------------------
+    # IMAGE
+    # --------------------------------------------------------
+
+    if poster:
+
+        image_html = (
+            f'<img '
+            f'class="movie-poster-img" '
+            f'src="{poster}" '
+            f'alt="{title}" '
+            f'loading="lazy" '
+            f'onerror="this.style.display=\'none\';'
+            f'this.nextElementSibling.style.display=\'flex\';">'
+            f'<div class="movie-poster-placeholder" '
+            f'style="display:none;">'
+            f'🎬'
+            f'<span>Image unavailable</span>'
+            f'</div>'
+        )
+
+    else:
+
+        image_html = (
+            '<div class="movie-poster-placeholder">'
+            '🎬'
+            '<span>No poster</span>'
+            '</div>'
+        )
+
+
+    # --------------------------------------------------------
+    # CARD
+    # --------------------------------------------------------
+
+    return (
+        f'<a class="movie-card" '
+        f'href="?view=details&amp;id={movie_id}" '
+        f'target="_self">'
+
+        f'<div class="movie-poster">'
+        f'{image_html}'
+        f'</div>'
+
+        f'<div class="movie-info">'
+
+        f'<div class="movie-title">'
+        f'{title}'
+        f'</div>'
+
+        f'<div class="movie-year">'
+        f'{year} {rating_text}'
+        f'</div>'
+
+        f'</div>'
+
+        f'</a>'
+    )
+
+
+# ============================================================
+# SHOW MOVIES
+# ============================================================
+
+def show_movies(
+    movies,
+    horizontal=False
+):
+
+    if not movies:
+
+        st.info(
+            "No movies found."
+        )
+
+        return
+
+
+    # --------------------------------------------------------
+    # Make sure movies is a list
+    # --------------------------------------------------------
+
+    if isinstance(movies, dict):
+
+        movies = (
+            movies.get("results")
+            or movies.get("movies")
+            or []
+        )
+
+
+    if not isinstance(movies, list):
+
+        st.warning(
+            "Movie API returned an unexpected format."
+        )
+
+        return
+
+
+    # --------------------------------------------------------
+    # Cards
+    # --------------------------------------------------------
+
+    cards = "".join(
+        movie_card(movie)
+        for movie in movies
+    )
+
+
+    if not cards:
+
+        st.info(
+            "Movies were found, but no valid "
+            "movie cards could be created."
+        )
+
+        return
+
+
+    css_class = (
+        "movie-row"
+        if horizontal
+        else "movie-grid"
+    )
+
+
+    render_html(
+        f'<div class="{css_class}">'
+        f'{cards}'
+        f'</div>'
+    )
+
+
+# ============================================================
+# HOME PAGE
+# ============================================================
+
+if st.session_state.view == "home":
+
+    # ========================================================
+    # SEARCH
+    # ========================================================
+
+    search = st.text_input(
+        "Search movie",
+        placeholder=(
+            "Type: batman, avenger, love..."
+        )
+    )
+
+
+    if search.strip():
+
+        query = search.strip()
+
+
+        if len(query) < 2:
+
+            st.info(
+                "Type at least 2 characters."
+            )
+
+            st.stop()
+
+
+        # ====================================================
+        # SEARCH API
+        # ====================================================
+
+        data, error = api_get(
+            "/tmdb/search",
+            {
+                "query": query
+            }
+        )
+
+
+        if error:
+
+            st.error(
+                "Movie server could not be reached."
+            )
+
+            st.code(error)
+
+            st.stop()
+
+
+        # ====================================================
+        # SEARCH RESULTS
+        # ====================================================
+
+        if isinstance(data, dict):
+
+            results = (
+                data.get("results")
+                or data.get("movies")
+                or []
+            )
+
+        elif isinstance(data, list):
+
+            results = data
+
+        else:
+
+            results = []
+
+
+        if not results:
+
+            st.warning(
+                "No movies found."
+            )
+
+            st.stop()
+
+
+        # ====================================================
+        # DROPDOWN
+        # ====================================================
+
+        names = []
+
+
+        for movie in results[:15]:
+
+            title = (
+                movie.get("title")
+                or movie.get("name")
+                or "Unknown"
+            )
+
+            year = (
+                movie.get("release_date")
+                or movie.get("first_air_date")
+                or ""
+            )[:4]
+
+
+            if year:
+
+                names.append(
+                    f"{title} ({year})"
+                )
+
+            else:
+
+                names.append(
+                    title
+                )
+
+
+        selected = st.selectbox(
+            "Choose a movie",
+            ["-- Select a movie --"]
+            + names
+        )
+
+
+        if selected != "-- Select a movie --":
+
+            index = names.index(
+                selected
+            )
+
+            selected_movie = results[index]
+
+            selected_id = (
+                selected_movie.get("id")
+                or selected_movie.get("tmdb_id")
+            )
+
+
+            if selected_id:
+
+                go_movie(
+                    selected_id
+                )
+
+
+        # ====================================================
+        # SEARCH RESULTS TITLE
+        # ====================================================
+
+        st.markdown(
+            "## 🔎 Search Results"
+        )
+
+
+        # ====================================================
+        # SEARCH MOVIE CARDS
+        # ====================================================
+
+        show_movies(
+            results[:24]
+        )
+
+
+        st.stop()
+
+
+    # ========================================================
+    # CATEGORY PAGE
+    # ========================================================
+
+    if st.session_state.category:
+
+        if st.button(
+            "🏠 Back to Home"
+        ):
+
+            go_home()
+
+
+        category_names = {
+            key: name
+            for key, icon, name in categories
+        }
+
+
+        category_name = category_names.get(
+            st.session_state.category,
+            "Movies"
+        )
+
+
+        st.markdown(
+            f'<div class="section-title">'
+            f'🎬 {esc(category_name)}'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+
+
+        movies, error = api_get(
+            "/home",
+            {
+                "category": (
+                    st.session_state.category
+                ),
+                "limit": 30
+            }
+        )
+
+
+        if error:
+
+            st.error(
+                "Could not load this category."
+            )
+
+            st.code(error)
+
+        else:
+
+            show_movies(
+                movies
+            )
+
+
+        st.stop()
+
+
+    # ========================================================
+    # FEATURED MOVIE
+    # ========================================================
+
+    st.markdown(
+        '<div class="section-title">'
+        '🎬 Featured Movie'
+        '</div>',
+        unsafe_allow_html=True
+    )
+
+
+    trending, error = api_get(
+        "/home",
+        {
+            "category": "trending",
+            "limit": 8
+        }
+    )
+
+
+    if not error and trending:
+
+        if isinstance(trending, dict):
+
+            trending = (
+                trending.get("results")
+                or trending.get("movies")
+                or []
+            )
+
+
+        if isinstance(trending, list) and trending:
+
+            first = trending[0]
+
+
+            movie_id = (
+                first.get("tmdb_id")
+                or first.get("id")
+            )
+
+
+            if movie_id:
+
+                info, info_error = api_get(
+                    f"/movie/id/{movie_id}"
+                )
+
+
+                if not info_error and info:
+
+                    title = (
+                        info.get("title")
+                        or "Featured Movie"
+                    )
+
+
+                    overview = (
+                        info.get("overview")
+                        or "No overview available."
+                    )
+
+
+                    # ------------------------------------------------
+                    # Hero image
+                    # ------------------------------------------------
+
+                    image = get_image_url(
+                        info,
+                        "backdrop"
+                    )
+
+
+                    # Try poster if backdrop unavailable
+
+                    if not image:
+
+                        image = get_image_url(
+                            info,
+                            "poster"
+                        )
+
+
+                    image = esc(image)
+
+
+                    if image:
+
+                        hero_style = (
+                            "background-image:"
+                            f"url('{image}');"
+                        )
+
+                    else:
+
+                        hero_style = (
+                            "background:"
+                            "linear-gradient("
+                            "135deg,"
+                            "#211832,"
+                            "#0b0715"
+                            ");"
+                        )
+
+
+                    render_html(
+                        f'<div class="hero" '
+                        f'style="{hero_style}">'
+
+                        f'<div class="hero-overlay">'
+
+                        f'<div class="hero-title">'
+                        f'{esc(title)}'
+                        f'</div>'
+
+                        f'<div class="hero-text">'
+                        f'{esc(overview)}'
+                        f'</div>'
+
+                        f'</div>'
+
+                        f'</div>'
+                    )
+
+
+    # ========================================================
+    # HOME MOVIE ROWS
+    # ========================================================
+
+    rows = [
+        ("trending", "🔥 Trending Now"),
+        ("popular", "😍 Popular Picks"),
+        ("top_rated", "🏆 Hit Movies"),
+        ("now_playing", "🎟️ Now Playing"),
+        ("upcoming", "📅 Coming Soon"),
+    ]
+
+
+    for key, section_title in rows:
+
+        st.markdown(
+            f'<div class="section-title">'
+            f'{esc(section_title)}'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+
+
+        movies, error = api_get(
+            "/home",
+            {
+                "category": key,
+                "limit": 20
+            }
+        )
+
+
+        if error:
+
+            st.warning(
+                f"Could not load "
+                f"{section_title}."
+            )
+
+        else:
+
+            show_movies(
+                movies,
+                horizontal=True
+            )
+
+
+# ============================================================
+# DETAILS PAGE
+# ============================================================
+
+elif st.session_state.view == "details":
+
+    movie_id = (
+        st.session_state.movie_id
+    )
+
+
+    if not movie_id:
+
+        st.error(
+            "No movie selected."
+        )
+
+
+        if st.button(
+            "🏠 Go Home"
+        ):
+
+            go_home()
+
+
+        st.stop()
+
+
+    # ========================================================
+    # BACK
+    # ========================================================
+
+    if st.button(
+        "🏠 Back to Home"
+    ):
+
+        go_home()
+
+
+    # ========================================================
+    # DETAILS API
+    # ========================================================
+
+    data, error = api_get(
+        f"/movie/id/{movie_id}"
+    )
+
+
+    if error or not data:
+
+        st.error(
+            "Could not load movie details."
+        )
+
+        st.code(
+            error or "Unknown error"
+        )
+
+        st.stop()
+
+
+    # ========================================================
+    # MOVIE DATA
+    # ========================================================
+
+    title = (
+        data.get("title")
+        or "Unknown"
+    )
+
+
+    overview = (
+        data.get("overview")
+        or "No overview available."
+    )
+
+
+    # ========================================================
+    # BACKDROP
+    # ========================================================
+
+    backdrop = get_image_url(
+        data,
+        "backdrop"
+    )
+
+
+    if not backdrop:
+
+        backdrop = get_image_url(
+            data,
+            "poster"
+        )
+
+
+    backdrop = esc(
+        backdrop
+    )
+
+
+    # ========================================================
+    # DETAILS
+    # ========================================================
+
+    rating = data.get(
+        "vote_average"
+    )
+
+
+    release_date = (
+        data.get("release_date")
+        or ""
+    )
+
+
+    year = str(
+        release_date
+    )[:4]
+
+
+    runtime = data.get(
+        "runtime"
+    )
+
+
+    language = (
+        data.get(
+            "original_language"
+        )
+        or ""
+    ).upper()
+
+
+    genres = (
+        data.get("genres")
+        or []
+    )
+
+
+    # ========================================================
+    # DETAILS HERO
+    # ========================================================
+
+    if backdrop:
+
+        hero_style = (
+            "background-image:"
+            f"url('{backdrop}');"
+        )
+
+    else:
+
+        hero_style = (
+            "background:"
+            "linear-gradient("
+            "135deg,"
+            "#211832,"
+            "#0b0715"
+            ");"
+        )
+
+
+    render_html(
+        f'<div class="details-hero" '
+        f'style="{hero_style}">'
+
+        f'<div class="details-title">'
+        f'{esc(title)}'
+        f'</div>'
+
+        f'</div>'
+    )
+
+
+    # ========================================================
+    # META
+    # ========================================================
+
+    info = []
+
+
+    if rating is not None:
+
+        try:
+
+            info.append(
+                f"⭐ {float(rating):.1f}"
+            )
+
+        except (
+            TypeError,
+            ValueError
+        ):
+
+            pass
+
+
+    if year:
+
+        info.append(
+            year
+        )
+
+
+    if runtime:
+
+        try:
+
+            runtime_int = int(runtime)
+
+            hours = (
+                runtime_int // 60
+            )
+
+            minutes = (
+                runtime_int % 60
+            )
+
+            info.append(
+                f"{hours}h {minutes}m"
+            )
+
+        except (
+            TypeError,
+            ValueError
+        ):
+
+            pass
+
+
+    if language:
+
+        info.append(
+            language
+        )
+
+
+    if info:
+
+        st.write(
+            " • ".join(info)
+        )
+
+
+    # ========================================================
+    # GENRES
+    # ========================================================
+
+    if genres:
+
+        genre_html = ""
+
+
+        for genre in genres:
+
+            if isinstance(
+                genre,
+                dict
+            ):
+
+                name = (
+                    genre.get("name")
+                    or ""
+                )
+
+            else:
+
+                name = str(
+                    genre
+                )
+
+
+            genre_html += (
+                f'<span class="tag">'
+                f'{esc(name)}'
+                f'</span>'
+            )
+
+
+        render_html(
+            genre_html
+        )
+
+
+    # ========================================================
+    # OVERVIEW
+    # ========================================================
+
+    st.markdown(
+        "### Overview"
+    )
+
+
+    st.write(
+        overview
+    )
+
+
+    # ========================================================
+    # TRAILER
+    # ========================================================
+
+    trailer = (
+        "https://www.youtube.com/results"
+        "?search_query="
+        + quote_plus(
+            str(title)
+            + " official trailer"
+        )
+    )
+
+
+    render_html(
+        f'<a '
+        f'href="{esc(trailer)}" '
+        f'target="_blank" '
+        f'class="trailer-button">'
+        f'🎬 Watch Trailer'
+        f'</a>'
+    )
+
+
+    # ========================================================
+    # SIMILAR MOVIES
+    # ========================================================
+
+    st.markdown(
+        "## 🔎 Similar Movies"
+    )
+
+
+    bundle, error = api_get(
+        "/movie/search",
+        {
+            "query": title,
+            "tfidf_top_n": 14,
+            "genre_limit": 14,
+        }
+    )
+
+
+    similar = []
+
+
+    # ========================================================
+    # TF-IDF
+    # ========================================================
+
+    if not error and bundle:
+
+        tfidf = (
+            bundle.get(
+                "tfidf_recommendations",
+                []
+            )
+            or []
+        )
+
+
+        for item in tfidf:
+
+            if not isinstance(
+                item,
+                dict
+            ):
+
+                continue
+
+
+            tmdb = (
+                item.get("tmdb")
+                or {}
+            )
+
+
+            if not isinstance(
+                tmdb,
+                dict
+            ):
+
+                continue
+
+
+            if tmdb.get("tmdb_id"):
+
+                similar.append(
+                    {
+                        "tmdb_id": tmdb.get(
+                            "tmdb_id"
+                        ),
+
+                        "title": (
+                            tmdb.get("title")
+                            or item.get("title")
+                            or "Unknown"
+                        ),
+
+                        "poster_url": tmdb.get(
+                            "poster_url"
+                        ),
+
+                        "poster_path": tmdb.get(
+                            "poster_path"
+                        ),
+
+                        "release_date": tmdb.get(
+                            "release_date",
+                            ""
+                        ),
+
+                        "vote_average": tmdb.get(
+                            "vote_average"
+                        ),
+                    }
+                )
+
+
+        # ----------------------------------------------------
+        # Genre fallback
+        # ----------------------------------------------------
+
+        if not similar:
+
+            similar = (
+                bundle.get(
+                    "genre_recommendations",
+                    []
+                )
+                or []
+            )
+
+
+    # ========================================================
+    # FINAL FALLBACK
+    # ========================================================
+
+    if not similar:
+
+        similar, fallback_error = api_get(
+            "/recommend/genre",
+            {
+                "tmdb_id": movie_id,
+                "limit": 18,
+            }
+        )
+
+
+    # ========================================================
+    # DISPLAY SIMILAR
+    # ========================================================
+
+    if similar:
+
+        show_movies(
+            similar,
+            horizontal=True
+        )
+
+    else:
+
+        st.info(
+            "No similar movies found "
+            "for this movie."
+        )
+
+
+# ============================================================
+# FOOTER
+# ============================================================
+
+st.markdown(
+    """
+    <hr>
+
+    <p style="
+        text-align:center;
+        color:#777;
+    ">
+        🎬 CineMatch
+    </p>
+    """,
+    unsafe_allow_html=True
+)
