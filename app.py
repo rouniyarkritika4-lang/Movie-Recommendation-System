@@ -12,11 +12,12 @@ import streamlit as st
 
 API_BASE = os.getenv(
     "API_BASE",
-    "https://movie-recommendation-system-t1c6.onrender.com" or "https://movie-rec-466x.onrender.com" 
+    "https://movie-recommendation-system-t1c6.onrender.com"
 ).rstrip("/")
 
 TMDB_IMG = "https://image.tmdb.org/t/p/w500"
 TMDB_BACKDROP = "https://image.tmdb.org/t/p/original"
+
 
 st.set_page_config(
     page_title="CineMatch",
@@ -55,7 +56,8 @@ section[data-testid="stSidebar"] {
 
 p,
 span,
-label {
+label,
+div {
     color: #eee;
 }
 
@@ -64,11 +66,16 @@ label {
    SEARCH
    ========================================================== */
 
+.stTextInput {
+    margin-bottom: 10px;
+}
+
 .stTextInput input {
     background: #191225 !important;
     color: white !important;
     border: 1px solid #654b8c !important;
     border-radius: 25px !important;
+    padding: 12px 18px !important;
 }
 
 .stTextInput input::placeholder {
@@ -85,22 +92,25 @@ label {
     color: white !important;
     border: 1px solid #7652a8 !important;
     border-radius: 20px !important;
+    font-weight: 600 !important;
 }
 
 .stButton button:hover {
     background: #7c3aed !important;
     color: white !important;
+    border-color: #9b5cff !important;
 }
 
 
 /* ==========================================================
-   DROPDOWN
+   SELECTBOX
    ========================================================== */
 
 div[data-testid="stSelectbox"]
 div[data-baseweb="select"] > div {
     background: white !important;
     color: black !important;
+    border-radius: 8px !important;
 }
 
 div[data-testid="stSelectbox"]
@@ -125,7 +135,7 @@ div[data-baseweb="popover"] [role="option"] * {
 }
 
 div[data-baseweb="popover"] [role="option"]:hover {
-    background: #eee !important;
+    background: #eeeeee !important;
 }
 
 
@@ -138,17 +148,26 @@ div[data-baseweb="popover"] [role="option"]:hover {
     left: 0;
     top: 0;
     bottom: 0;
+
     width: 225px;
+
     background: #08050e;
+
     border-right: 1px solid #292033;
+
     padding: 20px 14px;
+
     z-index: 9990;
+
+    overflow-y: auto;
 }
 
 .logo {
     font-size: 25px;
     font-weight: 900;
+
     margin-bottom: 30px;
+
     color: white !important;
 }
 
@@ -158,35 +177,53 @@ div[data-baseweb="popover"] [role="option"]:hover {
 
 .sidebar-title {
     background: #7c3aed;
+
     padding: 10px;
+
     border-radius: 6px;
+
     font-weight: bold;
+
     margin-bottom: 18px;
+
     color: white !important;
 }
 
 .sidebar-label {
     color: #999 !important;
+
     font-size: 13px;
+
     margin: 10px 8px;
 }
 
 .category {
     display: block;
+
     padding: 10px 12px;
+
     margin: 3px 0;
+
     border-radius: 6px;
+
     color: #ddd !important;
+
     text-decoration: none !important;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease;
 }
 
 .category:hover {
     background: #25173c;
+
     color: white !important;
 }
 
 .category.active {
     background: #6d28d9;
+
     color: white !important;
 }
 
@@ -197,10 +234,13 @@ div[data-baseweb="popover"] [role="option"]:hover {
 
 .movie-grid {
     display: grid;
-    grid-template-columns: repeat(
-        auto-fill,
-        minmax(165px, 1fr)
-    );
+
+    grid-template-columns:
+        repeat(
+            auto-fill,
+            minmax(165px, 1fr)
+        );
+
     gap: 18px;
 }
 
@@ -211,10 +251,19 @@ div[data-baseweb="popover"] [role="option"]:hover {
 
 .movie-row {
     display: flex;
+
     gap: 15px;
+
     overflow-x: auto;
-    padding: 5px 5px 18px;
-    scrollbar-color: #6d28d9 #151020;
+
+    padding:
+        5px
+        5px
+        18px;
+
+    scrollbar-color:
+        #6d28d9
+        #151020;
 }
 
 .movie-row::-webkit-scrollbar {
@@ -223,11 +272,13 @@ div[data-baseweb="popover"] [role="option"]:hover {
 
 .movie-row::-webkit-scrollbar-track {
     background: #151020;
+
     border-radius: 10px;
 }
 
 .movie-row::-webkit-scrollbar-thumb {
     background: #6d28d9;
+
     border-radius: 10px;
 }
 
@@ -242,14 +293,21 @@ div[data-baseweb="popover"] [role="option"]:hover {
 
 .movie-card {
     display: block;
+
     width: 100%;
+
     box-sizing: border-box;
 
     background: #151020;
-    border: 1px solid #292033;
+
+    border:
+        1px solid
+        #292033;
+
     border-radius: 12px;
 
     overflow: hidden;
+
     text-decoration: none !important;
 
     transition:
@@ -260,10 +318,17 @@ div[data-baseweb="popover"] [role="option"]:hover {
 
 .movie-card:hover {
     transform: translateY(-5px);
+
     border-color: #9b5cff;
 
     box-shadow:
-        0 10px 30px rgba(124, 58, 237, 0.25);
+        0 10px 30px
+        rgba(
+            124,
+            58,
+            237,
+            0.25
+        );
 }
 
 
@@ -273,6 +338,7 @@ div[data-baseweb="popover"] [role="option"]:hover {
 
 .movie-poster {
     width: 100%;
+
     aspect-ratio: 2 / 3;
 
     background:
@@ -283,32 +349,40 @@ div[data-baseweb="popover"] [role="option"]:hover {
         );
 
     overflow: hidden;
+
     position: relative;
 }
 
 .movie-poster-img {
     width: 100%;
+
     height: 100%;
 
     display: block;
 
     object-fit: cover;
+
     object-position: center;
 
     background: #211832;
 }
 
 
-/* Broken/no image */
+/* ==========================================================
+   POSTER PLACEHOLDER
+   ========================================================== */
 
 .movie-poster-placeholder {
     width: 100%;
+
     height: 100%;
 
     display: flex;
+
     flex-direction: column;
 
     align-items: center;
+
     justify-content: center;
 
     background:
@@ -318,13 +392,16 @@ div[data-baseweb="popover"] [role="option"]:hover {
             #0e0a17
         );
 
-    color: #7652a8;
+    color: #7652a8 !important;
+
     font-size: 42px;
 }
 
 .movie-poster-placeholder span {
     color: #888 !important;
+
     font-size: 11px;
+
     margin-top: 6px;
 }
 
@@ -339,17 +416,23 @@ div[data-baseweb="popover"] [role="option"]:hover {
 
 .movie-title {
     color: white !important;
+
     font-weight: bold;
+
     font-size: 14px;
 
     white-space: nowrap;
+
     overflow: hidden;
+
     text-overflow: ellipsis;
 }
 
 .movie-year {
     color: #999 !important;
+
     font-size: 12px;
+
     margin-top: 4px;
 }
 
@@ -360,10 +443,13 @@ div[data-baseweb="popover"] [role="option"]:hover {
 
 .section-title {
     color: white !important;
+
     font-size: 22px;
+
     font-weight: bold;
 
     margin-top: 25px;
+
     margin-bottom: 12px;
 }
 
@@ -378,42 +464,58 @@ div[data-baseweb="popover"] [role="option"]:hover {
     border-radius: 18px;
 
     background-size: cover;
+
     background-position: center;
 
     position: relative;
+
     overflow: hidden;
 
     margin-bottom: 25px;
 
-    border: 1px solid #292033;
+    border:
+        1px solid
+        #292033;
 }
 
 .hero-overlay {
     position: absolute;
+
     inset: 0;
 
     padding: 35px;
 
     display: flex;
+
     flex-direction: column;
+
     justify-content: flex-end;
 
     background:
         linear-gradient(
             transparent 20%,
-            rgba(5, 3, 12, 0.95) 100%
+            rgba(
+                5,
+                3,
+                12,
+                0.95
+            ) 100%
         );
 }
 
 .hero-title {
     font-size: 42px;
+
     font-weight: 900;
+
     color: white !important;
 }
 
 .hero-text {
     max-width: 650px;
+
     color: #ddd !important;
+
     line-height: 1.5;
 }
 
@@ -428,23 +530,29 @@ div[data-baseweb="popover"] [role="option"]:hover {
     border-radius: 18px;
 
     background-size: cover;
+
     background-position: center;
 
     position: relative;
+
     overflow: hidden;
 
-    border: 1px solid #292033;
+    border:
+        1px solid
+        #292033;
 }
 
 .details-title {
     position: absolute;
 
     bottom: 25px;
+
     left: 30px;
 
     color: white !important;
 
     font-size: 42px;
+
     font-weight: 900;
 }
 
@@ -478,6 +586,7 @@ div[data-baseweb="popover"] [role="option"]:hover {
     padding: 10px 20px;
 
     background: #7c3aed;
+
     color: white !important;
 
     border-radius: 20px;
@@ -516,6 +625,15 @@ div[data-baseweb="popover"] [role="option"]:hover {
     .hero {
         min-height: 350px;
     }
+
+    .movie-grid {
+        grid-template-columns:
+            repeat(
+                auto-fill,
+                minmax(140px, 1fr)
+            );
+    }
+
 }
 
 </style>
@@ -529,22 +647,19 @@ div[data-baseweb="popover"] [role="option"]:hover {
 # ============================================================
 
 def esc(value):
-    """
-    Safely escape a value before putting it into HTML.
-    """
+    """Safely escape values used inside HTML."""
 
     if value is None:
         return ""
 
-    return html.escape(str(value), quote=True)
+    return html.escape(
+        str(value),
+        quote=True
+    )
 
 
 def render_html(value):
-    """
-    Render HTML as one line.
-    This prevents Streamlit from treating indentation
-    as a code block.
-    """
+    """Render HTML safely as one line."""
 
     one_line = " ".join(
         line.strip()
@@ -552,30 +667,23 @@ def render_html(value):
         if line.strip()
     )
 
-    st.markdown(
-        one_line,
-        unsafe_allow_html=True
-    )
+    if one_line:
+        st.markdown(
+            one_line,
+            unsafe_allow_html=True
+        )
 
 
 # ============================================================
-# IMAGE URL HELPER
+# IMAGE URL
 # ============================================================
 
-def normalize_image_url(value, image_type="poster"):
+def normalize_image_url(
+    value,
+    image_type="poster"
+):
     """
-    Convert any TMDB image value into a complete URL.
-
-    Supported:
-
-        /abc.jpg
-
-        abc.jpg
-
-        https://image.tmdb.org/...
-
-        http://...
-
+    Convert TMDB image paths into complete URLs.
     """
 
     if not value:
@@ -586,46 +694,27 @@ def normalize_image_url(value, image_type="poster"):
     if not value:
         return ""
 
-    # --------------------------------------------------------
-    # Already complete URL
-    # --------------------------------------------------------
+    # Remove accidental quotes
+    value = value.strip("'\"")
 
+    # Already a complete URL
     if value.startswith("https://"):
         return value
 
     if value.startswith("http://"):
         return value
 
-
-    # --------------------------------------------------------
-    # Remove accidental quotes
-    # --------------------------------------------------------
-
-    value = value.strip("'\"")
-
-
-    # --------------------------------------------------------
-    # Select image size
-    # --------------------------------------------------------
-
+    # Select correct TMDB base
     if image_type == "backdrop":
         base = TMDB_BACKDROP
     else:
         base = TMDB_IMG
 
-
-    # --------------------------------------------------------
-    # TMDB path
-    # --------------------------------------------------------
-
+    # Already a TMDB path
     if value.startswith("/"):
         return base + value
 
-
-    # --------------------------------------------------------
-    # Filename
-    # --------------------------------------------------------
-
+    # Filename/path
     return base + "/" + value
 
 
@@ -633,17 +722,16 @@ def normalize_image_url(value, image_type="poster"):
 # GET IMAGE FROM MOVIE
 # ============================================================
 
-def get_image_url(movie, image_type="poster"):
+def get_image_url(
+    movie,
+    image_type="poster"
+):
     """
-    Try multiple possible field names.
-
-    This is important because different API endpoints
-    may return different image field names.
+    Try many common image field names.
     """
 
     if not isinstance(movie, dict):
         return ""
-
 
     if image_type == "poster":
 
@@ -665,11 +753,9 @@ def get_image_url(movie, image_type="poster"):
             "backdrop",
             "backdrop_image",
             "backdrop_image_url",
-            "backdrop_url",
             "image_url",
             "image",
         ]
-
 
     for field in possible_fields:
 
@@ -685,8 +771,116 @@ def get_image_url(movie, image_type="poster"):
             if result:
                 return result
 
-
     return ""
+
+
+# ============================================================
+# GET MOVIE ID
+# ============================================================
+
+def get_movie_id(movie):
+
+    if not isinstance(movie, dict):
+        return None
+
+    possible_ids = [
+        movie.get("tmdb_id"),
+        movie.get("id"),
+        movie.get("movie_id"),
+    ]
+
+    for value in possible_ids:
+
+        if value is None:
+            continue
+
+        try:
+            return int(value)
+
+        except (
+            TypeError,
+            ValueError
+        ):
+            continue
+
+    return None
+
+
+# ============================================================
+# GET MOVIE TITLE
+# ============================================================
+
+def get_movie_title(movie):
+
+    if not isinstance(movie, dict):
+        return "Unknown"
+
+    return (
+        movie.get("title")
+        or movie.get("name")
+        or movie.get("original_title")
+        or "Unknown"
+    )
+
+
+# ============================================================
+# GET YEAR
+# ============================================================
+
+def get_movie_year(movie):
+
+    if not isinstance(movie, dict):
+        return ""
+
+    release_date = (
+        movie.get("release_date")
+        or movie.get("first_air_date")
+        or ""
+    )
+
+    return str(release_date)[:4]
+
+
+# ============================================================
+# NORMALIZE MOVIE LIST
+# ============================================================
+
+def normalize_movies(data):
+
+    if data is None:
+        return []
+
+    # API directly returned list
+    if isinstance(data, list):
+        return data
+
+    # API returned dictionary
+    if isinstance(data, dict):
+
+        possible_keys = [
+            "results",
+            "movies",
+            "data",
+            "items",
+            "recommendations",
+        ]
+
+        for key in possible_keys:
+
+            value = data.get(key)
+
+            if isinstance(value, list):
+                return value
+
+        # Sometimes API returns a single movie
+        if (
+            data.get("id")
+            or data.get("tmdb_id")
+            or data.get("title")
+        ):
+            return [data]
+
+    return []
 
 
 # ============================================================
@@ -694,7 +888,10 @@ def get_image_url(movie, image_type="poster"):
 # ============================================================
 
 @st.cache_data(ttl=600)
-def api_get(path, params=None):
+def api_get(
+    path,
+    params=None
+):
 
     try:
 
@@ -713,7 +910,6 @@ def api_get(path, params=None):
                 f"{response.text[:500]}"
             )
 
-
         try:
 
             data = response.json()
@@ -725,9 +921,7 @@ def api_get(path, params=None):
                 + response.text[:500]
             )
 
-
         return data, None
-
 
     except requests.exceptions.Timeout:
 
@@ -735,13 +929,11 @@ def api_get(path, params=None):
             "The movie server took too long to respond."
         )
 
-
     except requests.exceptions.ConnectionError:
 
         return None, (
             "Could not connect to the movie server."
         )
-
 
     except Exception as e:
 
@@ -755,7 +947,9 @@ def api_get(path, params=None):
 def go_home():
 
     st.session_state.view = "home"
+
     st.session_state.movie_id = None
+
     st.session_state.category = None
 
     st.query_params.clear()
@@ -774,17 +968,21 @@ def go_movie(movie_id):
 
         movie_id = int(movie_id)
 
-    except (TypeError, ValueError):
+    except (
+        TypeError,
+        ValueError
+    ):
 
         return
 
-
     st.session_state.view = "details"
+
     st.session_state.movie_id = movie_id
 
     st.query_params.clear()
 
     st.query_params["view"] = "details"
+
     st.query_params["id"] = str(movie_id)
 
     st.rerun()
@@ -809,11 +1007,16 @@ if "category" not in st.session_state:
 # ============================================================
 
 url_view = st.query_params.get("view")
+
 url_id = st.query_params.get("id")
+
 url_cat = st.query_params.get("cat")
 
 
-if url_view in ("home", "details"):
+if url_view in (
+    "home",
+    "details"
+):
 
     st.session_state.view = url_view
 
@@ -822,9 +1025,14 @@ if url_id:
 
     try:
 
-        st.session_state.movie_id = int(url_id)
+        st.session_state.movie_id = int(
+            url_id
+        )
 
-    except (ValueError, TypeError):
+    except (
+        ValueError,
+        TypeError
+    ):
 
         pass
 
@@ -843,11 +1051,31 @@ elif st.session_state.view == "home":
 # ============================================================
 
 categories = [
-    ("trending", "🔥", "Trending"),
-    ("popular", "😍", "Popular"),
-    ("top_rated", "🏆", "Hit Movies"),
-    ("now_playing", "🎟️", "Now Playing"),
-    ("upcoming", "📅", "Coming Soon"),
+    (
+        "trending",
+        "🔥",
+        "Trending"
+    ),
+    (
+        "popular",
+        "😍",
+        "Popular"
+    ),
+    (
+        "top_rated",
+        "🏆",
+        "Hit Movies"
+    ),
+    (
+        "now_playing",
+        "🎟️",
+        "Now Playing"
+    ),
+    (
+        "upcoming",
+        "📅",
+        "Coming Soon"
+    ),
 ]
 
 
@@ -855,7 +1083,9 @@ categories = [
 # LEFT SIDEBAR
 # ============================================================
 
-sidebar_html = '<div class="movie-sidebar">'
+sidebar_html = (
+    '<div class="movie-sidebar">'
+)
 
 sidebar_html += (
     '<div class="logo">'
@@ -880,15 +1110,21 @@ for key, icon, name in categories:
 
     active = (
         "active"
-        if st.session_state.category == key
+        if (
+            st.session_state.category
+            == key
+        )
         else ""
     )
 
     sidebar_html += (
-        f'<a class="category {active}" '
-        f'href="?view=home&amp;cat={esc(key)}" '
+        f'<a '
+        f'class="category {active}" '
+        f'href="?view=home'
+        f'&amp;cat={esc(key)}" '
         f'target="_self">'
-        f'{icon} &nbsp; {esc(name)}'
+        f'{icon} &nbsp; '
+        f'{esc(name)}'
         f'</a>'
     )
 
@@ -926,45 +1162,34 @@ st.markdown(
 
 def movie_card(movie):
 
-    if not isinstance(movie, dict):
+    if not isinstance(
+        movie,
+        dict
+    ):
         return ""
-
 
     # --------------------------------------------------------
     # ID
     # --------------------------------------------------------
 
-    movie_id = (
-        movie.get("tmdb_id")
-        or movie.get("id")
+    movie_id = get_movie_id(
+        movie
     )
 
     if not movie_id:
         return ""
 
-
-    try:
-
-        movie_id = int(movie_id)
-
-    except (TypeError, ValueError):
-
-        return ""
-
-
     # --------------------------------------------------------
     # TITLE
     # --------------------------------------------------------
 
-    raw_title = (
-        movie.get("title")
-        or movie.get("name")
-        or movie.get("original_title")
-        or "Unknown"
+    raw_title = get_movie_title(
+        movie
     )
 
-    title = esc(raw_title)
-
+    title = esc(
+        raw_title
+    )
 
     # --------------------------------------------------------
     # POSTER
@@ -975,23 +1200,19 @@ def movie_card(movie):
         "poster"
     )
 
-    poster = esc(poster)
-
+    poster = esc(
+        poster
+    )
 
     # --------------------------------------------------------
     # YEAR
     # --------------------------------------------------------
 
-    release_date = (
-        movie.get("release_date")
-        or movie.get("first_air_date")
-        or ""
-    )
-
     year = esc(
-        str(release_date)[:4]
+        get_movie_year(
+            movie
+        )
     )
-
 
     # --------------------------------------------------------
     # RATING
@@ -1018,11 +1239,9 @@ def movie_card(movie):
 
         rating_text = ""
 
-
     rating_text = esc(
         rating_text
     )
-
 
     # --------------------------------------------------------
     # IMAGE
@@ -1036,46 +1255,60 @@ def movie_card(movie):
             f'src="{poster}" '
             f'alt="{title}" '
             f'loading="lazy" '
-            f'onerror="this.style.display=\'none\';'
-            f'this.nextElementSibling.style.display=\'flex\';">'
-            f'<div class="movie-poster-placeholder" '
+            f'onerror="'
+            f'this.style.display=\'none\';'
+            f'this.nextElementSibling'
+            f'.style.display=\'flex\';'
+            f'">'
+            
+            f'<div '
+            f'class="movie-poster-placeholder" '
             f'style="display:none;">'
             f'🎬'
-            f'<span>Image unavailable</span>'
+            f'<span>'
+            f'Image unavailable'
+            f'</span>'
             f'</div>'
         )
 
     else:
 
         image_html = (
-            '<div class="movie-poster-placeholder">'
+            '<div '
+            'class="movie-poster-placeholder">'
             '🎬'
             '<span>No poster</span>'
             '</div>'
         )
-
 
     # --------------------------------------------------------
     # CARD
     # --------------------------------------------------------
 
     return (
-        f'<a class="movie-card" '
-        f'href="?view=details&amp;id={movie_id}" '
+        f'<a '
+        f'class="movie-card" '
+        f'href="?view=details'
+        f'&amp;id={movie_id}" '
         f'target="_self">'
 
-        f'<div class="movie-poster">'
+        f'<div '
+        f'class="movie-poster">'
         f'{image_html}'
         f'</div>'
 
-        f'<div class="movie-info">'
+        f'<div '
+        f'class="movie-info">'
 
-        f'<div class="movie-title">'
+        f'<div '
+        f'class="movie-title">'
         f'{title}'
         f'</div>'
 
-        f'<div class="movie-year">'
-        f'{year} {rating_text}'
+        f'<div '
+        f'class="movie-year">'
+        f'{year} '
+        f'{rating_text}'
         f'</div>'
 
         f'</div>'
@@ -1093,6 +1326,10 @@ def show_movies(
     horizontal=False
 ):
 
+    movies = normalize_movies(
+        movies
+    )
+
     if not movies:
 
         st.info(
@@ -1101,48 +1338,26 @@ def show_movies(
 
         return
 
+    cards = ""
 
-    # --------------------------------------------------------
-    # Make sure movies is a list
-    # --------------------------------------------------------
+    for movie in movies:
 
-    if isinstance(movies, dict):
-
-        movies = (
-            movies.get("results")
-            or movies.get("movies")
-            or []
+        card = movie_card(
+            movie
         )
 
-
-    if not isinstance(movies, list):
-
-        st.warning(
-            "Movie API returned an unexpected format."
-        )
-
-        return
-
-
-    # --------------------------------------------------------
-    # Cards
-    # --------------------------------------------------------
-
-    cards = "".join(
-        movie_card(movie)
-        for movie in movies
-    )
-
+        if card:
+            cards += card
 
     if not cards:
 
         st.info(
-            "Movies were found, but no valid "
-            "movie cards could be created."
+            "Movies were found, "
+            "but no valid movie cards "
+            "could be created."
         )
 
         return
-
 
     css_class = (
         "movie-row"
@@ -1150,11 +1365,38 @@ def show_movies(
         else "movie-grid"
     )
 
-
     render_html(
-        f'<div class="{css_class}">'
+        f'<div '
+        f'class="{css_class}">'
         f'{cards}'
         f'</div>'
+    )
+
+
+# ============================================================
+# LOAD CATEGORY
+# ============================================================
+
+def load_category(
+    category,
+    limit=20
+):
+
+    data, error = api_get(
+        "/home",
+        {
+            "category": category,
+            "limit": limit
+        }
+    )
+
+    if error:
+
+        return [], error
+
+    return (
+        normalize_movies(data),
+        None
     )
 
 
@@ -1172,14 +1414,17 @@ if st.session_state.view == "home":
         "Search movie",
         placeholder=(
             "Type: batman, avenger, love..."
-        )
+        ),
+        key="movie_search"
     )
 
+    # ========================================================
+    # SEARCH MODE
+    # ========================================================
 
     if search.strip():
 
         query = search.strip()
-
 
         if len(query) < 2:
 
@@ -1189,10 +1434,9 @@ if st.session_state.view == "home":
 
             st.stop()
 
-
-        # ====================================================
+        # ----------------------------------------------------
         # SEARCH API
-        # ====================================================
+        # ----------------------------------------------------
 
         data, error = api_get(
             "/tmdb/search",
@@ -1201,38 +1445,21 @@ if st.session_state.view == "home":
             }
         )
 
-
         if error:
 
             st.error(
                 "Movie server could not be reached."
             )
 
-            st.code(error)
+            st.code(
+                error
+            )
 
             st.stop()
 
-
-        # ====================================================
-        # SEARCH RESULTS
-        # ====================================================
-
-        if isinstance(data, dict):
-
-            results = (
-                data.get("results")
-                or data.get("movies")
-                or []
-            )
-
-        elif isinstance(data, list):
-
-            results = data
-
-        else:
-
-            results = []
-
+        results = normalize_movies(
+            data
+        )
 
         if not results:
 
@@ -1242,87 +1469,100 @@ if st.session_state.view == "home":
 
             st.stop()
 
-
-        # ====================================================
+        # ----------------------------------------------------
         # DROPDOWN
-        # ====================================================
+        # ----------------------------------------------------
 
         names = []
 
+        valid_results = []
 
         for movie in results[:15]:
 
-            title = (
-                movie.get("title")
-                or movie.get("name")
-                or "Unknown"
+            if not isinstance(
+                movie,
+                dict
+            ):
+                continue
+
+            title = get_movie_title(
+                movie
             )
 
-            year = (
-                movie.get("release_date")
-                or movie.get("first_air_date")
-                or ""
-            )[:4]
+            year = get_movie_year(
+                movie
+            )
 
+            movie_id = get_movie_id(
+                movie
+            )
+
+            if not movie_id:
+                continue
 
             if year:
 
-                names.append(
+                display_name = (
                     f"{title} ({year})"
                 )
 
             else:
 
-                names.append(
-                    title
-                )
+                display_name = title
 
+            names.append(
+                display_name
+            )
 
-        selected = st.selectbox(
-            "Choose a movie",
-            ["-- Select a movie --"]
-            + names
-        )
+            valid_results.append(
+                movie
+            )
 
+        if names:
 
-        if selected != "-- Select a movie --":
+            selected = st.selectbox(
+                "Choose a movie",
+                [
+                    "-- Select a movie --"
+                ] + names
+            )
 
-            index = names.index(
+            if (
                 selected
-            )
+                != "-- Select a movie --"
+            ):
 
-            selected_movie = results[index]
-
-            selected_id = (
-                selected_movie.get("id")
-                or selected_movie.get("tmdb_id")
-            )
-
-
-            if selected_id:
-
-                go_movie(
-                    selected_id
+                index = names.index(
+                    selected
                 )
 
+                selected_movie = (
+                    valid_results[index]
+                )
 
-        # ====================================================
-        # SEARCH RESULTS TITLE
-        # ====================================================
+                selected_id = (
+                    get_movie_id(
+                        selected_movie
+                    )
+                )
+
+                if selected_id:
+
+                    go_movie(
+                        selected_id
+                    )
+
+        # ----------------------------------------------------
+        # SEARCH RESULTS
+        # ----------------------------------------------------
 
         st.markdown(
             "## 🔎 Search Results"
         )
 
-
-        # ====================================================
-        # SEARCH MOVIE CARDS
-        # ====================================================
-
         show_movies(
             results[:24]
         )
-
 
         st.stop()
 
@@ -1339,37 +1579,32 @@ if st.session_state.view == "home":
 
             go_home()
 
-
         category_names = {
             key: name
-            for key, icon, name in categories
+            for key, icon, name
+            in categories
         }
 
-
-        category_name = category_names.get(
-            st.session_state.category,
-            "Movies"
+        category_name = (
+            category_names.get(
+                st.session_state.category,
+                "Movies"
+            )
         )
 
-
         st.markdown(
-            f'<div class="section-title">'
-            f'🎬 {esc(category_name)}'
+            f'<div '
+            f'class="section-title">'
+            f'🎬 '
+            f'{esc(category_name)}'
             f'</div>',
             unsafe_allow_html=True
         )
 
-
-        movies, error = api_get(
-            "/home",
-            {
-                "category": (
-                    st.session_state.category
-                ),
-                "limit": 30
-            }
+        movies, error = load_category(
+            st.session_state.category,
+            30
         )
-
 
         if error:
 
@@ -1377,14 +1612,15 @@ if st.session_state.view == "home":
                 "Could not load this category."
             )
 
-            st.code(error)
+            st.code(
+                error
+            )
 
         else:
 
             show_movies(
                 movies
             )
-
 
         st.stop()
 
@@ -1394,125 +1630,150 @@ if st.session_state.view == "home":
     # ========================================================
 
     st.markdown(
-        '<div class="section-title">'
+        '<div '
+        'class="section-title">'
         '🎬 Featured Movie'
         '</div>',
         unsafe_allow_html=True
     )
 
-
-    trending, error = api_get(
-        "/home",
-        {
-            "category": "trending",
-            "limit": 8
-        }
+    trending, trending_error = (
+        load_category(
+            "trending",
+            8
+        )
     )
 
+    featured_movie = None
 
-    if not error and trending:
+    if (
+        not trending_error
+        and trending
+    ):
 
-        if isinstance(trending, dict):
+        featured_movie = trending[0]
 
-            trending = (
-                trending.get("results")
-                or trending.get("movies")
-                or []
+    if featured_movie:
+
+        movie_id = get_movie_id(
+            featured_movie
+        )
+
+        info = None
+
+        # ----------------------------------------------------
+        # Try details endpoint
+        # ----------------------------------------------------
+
+        if movie_id:
+
+            info, info_error = api_get(
+                f"/movie/id/{movie_id}"
             )
 
+        # ----------------------------------------------------
+        # If details endpoint fails,
+        # use trending object itself
+        # ----------------------------------------------------
 
-        if isinstance(trending, list) and trending:
+        if (
+            not info
+            or not isinstance(
+                info,
+                dict
+            )
+        ):
 
-            first = trending[0]
+            info = featured_movie
 
+        title = get_movie_title(
+            info
+        )
 
-            movie_id = (
-                first.get("tmdb_id")
-                or first.get("id")
+        overview = (
+            info.get("overview")
+            or featured_movie.get(
+                "overview"
+            )
+            or "No overview available."
+        )
+
+        image = get_image_url(
+            info,
+            "backdrop"
+        )
+
+        if not image:
+
+            image = get_image_url(
+                featured_movie,
+                "backdrop"
             )
 
+        if not image:
 
-            if movie_id:
+            image = get_image_url(
+                info,
+                "poster"
+            )
 
-                info, info_error = api_get(
-                    f"/movie/id/{movie_id}"
-                )
+        if not image:
 
+            image = get_image_url(
+                featured_movie,
+                "poster"
+            )
 
-                if not info_error and info:
+        image = esc(
+            image
+        )
 
-                    title = (
-                        info.get("title")
-                        or "Featured Movie"
-                    )
+        if image:
 
+            hero_style = (
+                "background-image:"
+                f"url('{image}');"
+            )
 
-                    overview = (
-                        info.get("overview")
-                        or "No overview available."
-                    )
+        else:
 
+            hero_style = (
+                "background:"
+                "linear-gradient("
+                "135deg,"
+                "#211832,"
+                "#0b0715"
+                ");"
+            )
 
-                    # ------------------------------------------------
-                    # Hero image
-                    # ------------------------------------------------
+        render_html(
+            f'<div '
+            f'class="hero" '
+            f'style="{hero_style}">'
 
-                    image = get_image_url(
-                        info,
-                        "backdrop"
-                    )
+            f'<div '
+            f'class="hero-overlay">'
 
+            f'<div '
+            f'class="hero-title">'
+            f'{esc(title)}'
+            f'</div>'
 
-                    # Try poster if backdrop unavailable
+            f'<div '
+            f'class="hero-text">'
+            f'{esc(overview)}'
+            f'</div>'
 
-                    if not image:
+            f'</div>'
 
-                        image = get_image_url(
-                            info,
-                            "poster"
-                        )
+            f'</div>'
+        )
 
+    else:
 
-                    image = esc(image)
-
-
-                    if image:
-
-                        hero_style = (
-                            "background-image:"
-                            f"url('{image}');"
-                        )
-
-                    else:
-
-                        hero_style = (
-                            "background:"
-                            "linear-gradient("
-                            "135deg,"
-                            "#211832,"
-                            "#0b0715"
-                            ");"
-                        )
-
-
-                    render_html(
-                        f'<div class="hero" '
-                        f'style="{hero_style}">'
-
-                        f'<div class="hero-overlay">'
-
-                        f'<div class="hero-title">'
-                        f'{esc(title)}'
-                        f'</div>'
-
-                        f'<div class="hero-text">'
-                        f'{esc(overview)}'
-                        f'</div>'
-
-                        f'</div>'
-
-                        f'</div>'
-                    )
+        st.info(
+            "Featured movie is currently unavailable."
+        )
 
 
     # ========================================================
@@ -1520,38 +1781,56 @@ if st.session_state.view == "home":
     # ========================================================
 
     rows = [
-        ("trending", "🔥 Trending Now"),
-        ("popular", "😍 Popular Picks"),
-        ("top_rated", "🏆 Hit Movies"),
-        ("now_playing", "🎟️ Now Playing"),
-        ("upcoming", "📅 Coming Soon"),
+        (
+            "trending",
+            "🔥 Trending Now"
+        ),
+        (
+            "popular",
+            "😍 Popular Picks"
+        ),
+        (
+            "top_rated",
+            "🏆 Hit Movies"
+        ),
+        (
+            "now_playing",
+            "🎟️ Now Playing"
+        ),
+        (
+            "upcoming",
+            "📅 Coming Soon"
+        ),
     ]
 
 
     for key, section_title in rows:
 
         st.markdown(
-            f'<div class="section-title">'
+            f'<div '
+            f'class="section-title">'
             f'{esc(section_title)}'
             f'</div>',
             unsafe_allow_html=True
         )
 
-
-        movies, error = api_get(
-            "/home",
-            {
-                "category": key,
-                "limit": 20
-            }
+        movies, error = load_category(
+            key,
+            20
         )
-
 
         if error:
 
             st.warning(
                 f"Could not load "
                 f"{section_title}."
+            )
+
+        elif not movies:
+
+            st.info(
+                f"No movies available "
+                f"for {section_title}."
             )
 
         else:
@@ -1572,20 +1851,17 @@ elif st.session_state.view == "details":
         st.session_state.movie_id
     )
 
-
     if not movie_id:
 
         st.error(
             "No movie selected."
         )
 
-
         if st.button(
             "🏠 Go Home"
         ):
 
             go_home()
-
 
         st.stop()
 
@@ -1609,8 +1885,14 @@ elif st.session_state.view == "details":
         f"/movie/id/{movie_id}"
     )
 
-
-    if error or not data:
+    if (
+        error
+        or not data
+        or not isinstance(
+            data,
+            dict
+        )
+    ):
 
         st.error(
             "Could not load movie details."
@@ -1627,11 +1909,9 @@ elif st.session_state.view == "details":
     # MOVIE DATA
     # ========================================================
 
-    title = (
-        data.get("title")
-        or "Unknown"
+    title = get_movie_title(
+        data
     )
-
 
     overview = (
         data.get("overview")
@@ -1648,14 +1928,12 @@ elif st.session_state.view == "details":
         "backdrop"
     )
 
-
     if not backdrop:
 
         backdrop = get_image_url(
             data,
             "poster"
         )
-
 
     backdrop = esc(
         backdrop
@@ -1670,22 +1948,19 @@ elif st.session_state.view == "details":
         "vote_average"
     )
 
-
     release_date = (
         data.get("release_date")
+        or data.get("first_air_date")
         or ""
     )
-
 
     year = str(
         release_date
     )[:4]
 
-
     runtime = data.get(
         "runtime"
     )
-
 
     language = (
         data.get(
@@ -1693,7 +1968,6 @@ elif st.session_state.view == "details":
         )
         or ""
     ).upper()
-
 
     genres = (
         data.get("genres")
@@ -1723,12 +1997,13 @@ elif st.session_state.view == "details":
             ");"
         )
 
-
     render_html(
-        f'<div class="details-hero" '
+        f'<div '
+        f'class="details-hero" '
         f'style="{hero_style}">'
 
-        f'<div class="details-title">'
+        f'<div '
+        f'class="details-title">'
         f'{esc(title)}'
         f'</div>'
 
@@ -1741,7 +2016,6 @@ elif st.session_state.view == "details":
     # ========================================================
 
     info = []
-
 
     if rating is not None:
 
@@ -1758,19 +2032,19 @@ elif st.session_state.view == "details":
 
             pass
 
-
     if year:
 
         info.append(
             year
         )
 
-
     if runtime:
 
         try:
 
-            runtime_int = int(runtime)
+            runtime_int = int(
+                runtime
+            )
 
             hours = (
                 runtime_int // 60
@@ -1780,9 +2054,18 @@ elif st.session_state.view == "details":
                 runtime_int % 60
             )
 
-            info.append(
-                f"{hours}h {minutes}m"
-            )
+            if hours:
+
+                info.append(
+                    f"{hours}h "
+                    f"{minutes}m"
+                )
+
+            else:
+
+                info.append(
+                    f"{minutes}m"
+                )
 
         except (
             TypeError,
@@ -1791,13 +2074,11 @@ elif st.session_state.view == "details":
 
             pass
 
-
     if language:
 
         info.append(
             language
         )
-
 
     if info:
 
@@ -1813,7 +2094,6 @@ elif st.session_state.view == "details":
     if genres:
 
         genre_html = ""
-
 
         for genre in genres:
 
@@ -1833,17 +2113,20 @@ elif st.session_state.view == "details":
                     genre
                 )
 
+            if name:
 
-            genre_html += (
-                f'<span class="tag">'
-                f'{esc(name)}'
-                f'</span>'
+                genre_html += (
+                    f'<span '
+                    f'class="tag">'
+                    f'{esc(name)}'
+                    f'</span>'
+                )
+
+        if genre_html:
+
+            render_html(
+                genre_html
             )
-
-
-        render_html(
-            genre_html
-        )
 
 
     # ========================================================
@@ -1853,7 +2136,6 @@ elif st.session_state.view == "details":
     st.markdown(
         "### Overview"
     )
-
 
     st.write(
         overview
@@ -1873,7 +2155,6 @@ elif st.session_state.view == "details":
         )
     )
 
-
     render_html(
         f'<a '
         f'href="{esc(trailer)}" '
@@ -1892,7 +2173,6 @@ elif st.session_state.view == "details":
         "## 🔎 Similar Movies"
     )
 
-
     bundle, error = api_get(
         "/movie/search",
         {
@@ -1902,15 +2182,20 @@ elif st.session_state.view == "details":
         }
     )
 
-
     similar = []
 
 
     # ========================================================
-    # TF-IDF
+    # TF-IDF RECOMMENDATIONS
     # ========================================================
 
-    if not error and bundle:
+    if (
+        not error
+        and isinstance(
+            bundle,
+            dict
+        )
+    ):
 
         tfidf = (
             bundle.get(
@@ -1919,7 +2204,6 @@ elif st.session_state.view == "details":
             )
             or []
         )
-
 
         for item in tfidf:
 
@@ -1930,12 +2214,10 @@ elif st.session_state.view == "details":
 
                 continue
 
-
             tmdb = (
                 item.get("tmdb")
                 or {}
             )
-
 
             if not isinstance(
                 tmdb,
@@ -1944,53 +2226,71 @@ elif st.session_state.view == "details":
 
                 continue
 
+            tmdb_id = (
+                tmdb.get("tmdb_id")
+                or tmdb.get("id")
+                or item.get("tmdb_id")
+                or item.get("id")
+            )
 
-            if tmdb.get("tmdb_id"):
+            if not tmdb_id:
 
-                similar.append(
-                    {
-                        "tmdb_id": tmdb.get(
-                            "tmdb_id"
-                        ),
+                continue
 
-                        "title": (
-                            tmdb.get("title")
-                            or item.get("title")
-                            or "Unknown"
-                        ),
+            similar.append(
+                {
+                    "tmdb_id": tmdb_id,
 
-                        "poster_url": tmdb.get(
+                    "title": (
+                        tmdb.get("title")
+                        or item.get("title")
+                        or "Unknown"
+                    ),
+
+                    "poster_url": (
+                        tmdb.get(
                             "poster_url"
-                        ),
+                        )
+                    ),
 
-                        "poster_path": tmdb.get(
+                    "poster_path": (
+                        tmdb.get(
                             "poster_path"
-                        ),
+                        )
+                    ),
 
-                        "release_date": tmdb.get(
+                    "release_date": (
+                        tmdb.get(
                             "release_date",
                             ""
-                        ),
+                        )
+                    ),
 
-                        "vote_average": tmdb.get(
+                    "vote_average": (
+                        tmdb.get(
                             "vote_average"
-                        ),
-                    }
-                )
+                        )
+                    ),
+                }
+            )
 
 
-        # ----------------------------------------------------
-        # Genre fallback
-        # ----------------------------------------------------
+        # ====================================================
+        # GENRE FALLBACK
+        # ====================================================
 
         if not similar:
 
-            similar = (
+            genre_results = (
                 bundle.get(
                     "genre_recommendations",
                     []
                 )
                 or []
+            )
+
+            similar = normalize_movies(
+                genre_results
             )
 
 
@@ -2000,13 +2300,46 @@ elif st.session_state.view == "details":
 
     if not similar:
 
-        similar, fallback_error = api_get(
-            "/recommend/genre",
-            {
-                "tmdb_id": movie_id,
-                "limit": 18,
-            }
+        fallback, fallback_error = (
+            api_get(
+                "/recommend/genre",
+                {
+                    "tmdb_id": movie_id,
+                    "limit": 18,
+                }
+            )
         )
+
+        if not fallback_error:
+
+            similar = normalize_movies(
+                fallback
+            )
+
+
+    # ========================================================
+    # REMOVE CURRENT MOVIE
+    # ========================================================
+
+    cleaned_similar = []
+
+    for movie in similar:
+
+        current_id = get_movie_id(
+            movie
+        )
+
+        if (
+            current_id
+            and current_id == movie_id
+        ):
+            continue
+
+        cleaned_similar.append(
+            movie
+        )
+
+    similar = cleaned_similar
 
 
     # ========================================================
@@ -2028,7 +2361,8 @@ elif st.session_state.view == "details":
         )
 
 
-# ============================================================
+# =================
+# ===========================================
 # FOOTER
 # ============================================================
 
