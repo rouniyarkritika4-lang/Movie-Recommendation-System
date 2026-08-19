@@ -8,7 +8,7 @@ httpx
 # Data & ML (Match Pickle)
 
 numpy
-scipy==1.13.1
+scipy
 pandas==2.2.2
 scikit-learn==1.5.1
 joblib==1.4.2
